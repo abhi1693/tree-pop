@@ -83,6 +83,7 @@ function TreeCanvas(props: TreeCanvasProps) {
   const sceneRef = useRef<P5 | null>(null);
   const latestConfigRef = useRef(props);
   const rebuildForestRef = useRef<null | (() => void)>(null);
+  const syncLeafScaleRef = useRef<null | ((nextLeafScale: number) => void)>(null);
 
   useEffect(() => {
     const previous = latestConfigRef.current;
@@ -103,6 +104,11 @@ function TreeCanvas(props: TreeCanvasProps) {
 
     if (shouldRebuild) {
       rebuildForestRef.current?.();
+      return;
+    }
+
+    if (previous.leafScale !== leafScale) {
+      syncLeafScaleRef.current?.(leafScale);
     }
   }, [initialHeight, leafScale, minBranchLength, numTrees, seed, windIntensity]);
 
@@ -434,7 +440,23 @@ function TreeCanvas(props: TreeCanvasProps) {
         instance.resizeCanvas(width, height);
       };
 
+      const syncLeafScale = (nextLeafScale: number) => {
+        forest.forEach((tree) => {
+          tree.options.leafScale = nextLeafScale;
+        });
+
+        pendingZones.forEach((zone) => {
+          zone.options.leafScale = nextLeafScale;
+        });
+
+        activeZones.forEach((zone) => {
+          zone.options.leafScale = nextLeafScale;
+          zone.tree.options.leafScale = nextLeafScale;
+        });
+      };
+
       rebuildForestRef.current = rebuildForest;
+      syncLeafScaleRef.current = syncLeafScale;
 
       instance.setup = () => {
         const width = containerRef.current?.clientWidth || 600;
@@ -618,6 +640,7 @@ function TreeCanvas(props: TreeCanvasProps) {
 
     return () => {
       rebuildForestRef.current = null;
+      syncLeafScaleRef.current = null;
       sceneRef.current?.remove();
       sceneRef.current = null;
     };
