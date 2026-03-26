@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Slackey&display=swap');
+
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #02594c;
+  font-family: var(--font-sans);
+}
+
+.scene__layer {
+  position: absolute;
+  inset: 0;
+}
+
+.scene__layer--overlay {
+  pointer-events: none;
+  z-index: 20;
+}
+
+.scene__title-wrap {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  z-index: 10;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.scene__title {
+  margin: 0;
+  color: #fff;
+  font-family: 'Slackey', system-ui;
+  font-size: clamp(4.5rem, 9vw, 6rem);
+  line-height: 1;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
+}
+
+.scene__controls {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-button {
+  display: flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.control-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
+}
+
+.control-button__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.canvas-surface {
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-surface canvas {
+  display: block;
+}
+
+.canvas-surface--overlay {
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .scene__title-wrap {
+    top: 28px;
+  }
+
+  .scene__controls {
+    top: 18px;
+    right: 18px;
+    gap: 12px;
+  }
+
+  .control-button {
+    width: 52px;
+    height: 52px;
+  }
+}
