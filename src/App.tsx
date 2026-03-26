@@ -10,102 +10,64 @@ import {
 import { useState } from 'react';
 import BirdOverlay from './components/BirdOverlay';
 import TreeCanvas from './components/TreeCanvas';
+import {
+  DEFAULT_BIRD_TRIGGER,
+  DEFAULT_INITIAL_HEIGHT,
+  DEFAULT_LEAF_SCALE,
+  DEFAULT_MIN_BRANCH_LENGTH,
+  DEFAULT_NUM_TREES,
+  DEFAULT_WIND_INTENSITY,
+  getNextInitialHeight,
+  getNextLeafScale,
+  getNextMinBranchLength,
+  getNextNumTrees,
+  getNextWindIntensity,
+  TREE_POP_SEED,
+} from './lib/controlState';
 import './App.css';
 
-const SEED = 'OpenProcessing';
-
 function App() {
-  const [numTrees, setNumTrees] = useState(1);
-  const [minBranchLength, setMinBranchLength] = useState(25);
-  const [initialHeight, setInitialHeight] = useState(100);
-  const [leafScale, setLeafScale] = useState(0.8);
-  const [windIntensity, setWindIntensity] = useState(0.5);
-  const [birdAddTrigger, setBirdAddTrigger] = useState(0);
+  const [numTrees, setNumTrees] = useState(DEFAULT_NUM_TREES);
+  const [minBranchLength, setMinBranchLength] = useState(DEFAULT_MIN_BRANCH_LENGTH);
+  const [initialHeight, setInitialHeight] = useState(DEFAULT_INITIAL_HEIGHT);
+  const [leafScale, setLeafScale] = useState(DEFAULT_LEAF_SCALE);
+  const [windIntensity, setWindIntensity] = useState(DEFAULT_WIND_INTENSITY);
+  const [birdAddTrigger, setBirdAddTrigger] = useState(DEFAULT_BIRD_TRIGGER);
 
   const controls = [
     {
       icon: TreeDeciduous,
       label: 'Number of Trees',
       onClick: () => {
-        setNumTrees((current) => {
-          if (current === 1) {
-            return 2;
-          }
-
-          if (current === 2) {
-            return 3;
-          }
-
-          return 1;
-        });
+        setNumTrees(getNextNumTrees);
       },
     },
     {
       icon: SlidersVertical,
       label: 'Branch Density',
       onClick: () => {
-        setMinBranchLength((current) => {
-          if (current === 25) {
-            return 15;
-          }
-
-          if (current === 15) {
-            return 8;
-          }
-
-          return 25;
-        });
+        setMinBranchLength(getNextMinBranchLength);
       },
     },
     {
       icon: ArrowUp,
       label: 'Tree Height',
       onClick: () => {
-        setInitialHeight((current) => {
-          if (current === 100) {
-            return 140;
-          }
-
-          if (current === 140) {
-            return 180;
-          }
-
-          return 100;
-        });
+        setInitialHeight(getNextInitialHeight);
       },
     },
     {
       icon: Leaf,
       label: 'Leaf Size',
       onClick: () => {
-        setLeafScale((current) => {
-          if (current === 0.8) {
-            return 1.5;
-          }
-
-          if (current === 1.5) {
-            return 2.5;
-          }
-
-          return 0.8;
-        });
+        setLeafScale(getNextLeafScale);
       },
     },
     {
       icon: Wind,
       label: 'Wind Force',
       onClick: () => {
-        setWindIntensity((current) => {
-          if (current === 0.5) {
-            return 2.5;
-          }
-
-          if (current === 2.5) {
-            return 5;
-          }
-
-          return 0.5;
-        });
+        setWindIntensity(getNextWindIntensity);
       },
     },
     {
@@ -126,7 +88,7 @@ function App() {
           initialHeight={initialHeight}
           leafScale={leafScale}
           windIntensity={windIntensity}
-          seed={SEED}
+          seed={TREE_POP_SEED}
         />
       </div>
 
