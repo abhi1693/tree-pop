@@ -3,19 +3,14 @@ name: Container
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Semver image version without a leading v
-        required: true
 
 permissions:
   contents: read
+  packages: write
 
 env:
   DO_NOT_TRACK: '1'
-  REGISTRY: registry.abhimanyu-saharan.com
-  IMAGE_NAME: tree-pop/tree-pop
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   build:
@@ -39,68 +34,25 @@ jobs:
 
       - uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/metadata-action@v6
         id: meta
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}-${{ matrix.suffix }},enable=${{ github.event_name == 'release' }}
-            type=raw,value=${{ inputs.version }}-${{ matrix.suffix }},enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=semver,pattern={{version}}-${{ matrix.suffix }}
 
-      - name: Build image archive
-        uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile
           platforms: ${{ matrix.platform }}
-          build-args: |
-            NODE_IMAGE=${{ env.REGISTRY }}/docker.io/library/node:24-alpine
-            NGINX_IMAGE=${{ env.REGISTRY }}/docker.io/nginxinc/nginx-unprivileged:1.29-alpine
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=oci,dest=${{ runner.temp }}/tree-pop-${{ matrix.suffix }}.oci.tar
-
-      - name: Publish with regctl
-        env:
-          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
-          IMAGE_ARCHIVE: ${{ runner.temp }}/tree-pop-${{ matrix.suffix }}.oci.tar
-          REGISTRY_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          set -euo pipefail
-          regctl_config="${RUNNER_TEMP}/regctl"
-          mkdir -p "${regctl_config}"
-          chmod 0777 "${regctl_config}"
-          printf '%s' "${REGISTRY_PASSWORD}" \
-            | docker run --rm -i \
-                -e REGCTL_CONFIG=/config/config.json \
-                -v "${regctl_config}:/config" \
-                regclient/regctl:latest \
-                registry login "${REGISTRY}" -u "${REGISTRY_USERNAME}" --pass-stdin
-          docker run --rm \
-            -e REGCTL_CONFIG=/config/config.json \
-            -v "${regctl_config}:/config" \
-            regclient/regctl:latest \
-            registry set "${REGISTRY}" --blob-chunk 10485760 --blob-max 1
-          while IFS= read -r image_tag; do
-            [ -n "${image_tag}" ] || continue
-            for attempt in 1 2 3; do
-              docker run --rm \
-                -e REGCTL_CONFIG=/config/config.json \
-                -v "${regctl_config}:/config" \
-                -v "${RUNNER_TEMP}:${RUNNER_TEMP}" \
-                regclient/regctl:latest \
-                image import "${image_tag}" "${IMAGE_ARCHIVE}" -v info && break
-              if [ "${attempt}" -eq 3 ]; then
-                exit 1
-              fi
-              sleep $((attempt * 15))
-            done
-          done <<< "${IMAGE_TAGS}"
 
   manifest:
     name: Publish manifest
@@ -111,14 +63,14 @@ jobs:
 
       - uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish multi-arch manifest
         env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.version }}
+          IMAGE: ${{ env.IMAGE_NAME }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           version="${RELEASE_TAG#v}"
           docker buildx imagetools create \
