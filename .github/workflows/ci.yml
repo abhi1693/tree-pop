@@ -1,25 +1,18 @@
 name: CI
-
 on:
   push:
-    branches: [master]
-  pull_request:
-
+    branches:
+      - master
+  pull_request: null
 env:
   DO_NOT_TRACK: '1'
-
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: 'npm'
-
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
-      - run: npm run build
+    uses: abhi1693/actions/.github/workflows/node-ci.yml@v1
+    with:
+      checks: '["lint", "test", "build"]'
+      scripts: '{"lint": "lint", "test": "test", "build": "build"}'
+      timeout-minutes: 20
+      runs-on: ubuntu-latest
+      node-version: '24'
+      project-env: '{"DO_NOT_TRACK":"1"}'

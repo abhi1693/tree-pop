@@ -1,28 +1,19 @@
 name: Container
-
 on:
   release:
-    types: [published]
-
+    types:
+      - published
 permissions:
   contents: read
   packages: write
-
 jobs:
-  build:
-    name: Build linux/arm64
-    uses: abhi1693/actions/.github/workflows/docker-build-push.yml@master
+  images:
+    uses: abhi1693/actions/.github/workflows/container-images.yml@v1
     with:
-      runs-on: ubuntu-24.04-arm
-      image: ghcr.io/${{ github.repository }}
-      context: .
-      file: Dockerfile
-      platforms: linux/arm64
-      cache-scope: tree-pop-arm64
-      tags: |
-        type=semver,pattern={{version}}
-      labels: |
-        org.opencontainers.image.source=https://github.com/${{ github.repository }}
-        org.opencontainers.image.title=tree-pop
-    secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
+      manifest: .github/images.json
+      publish: true
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
